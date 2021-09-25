@@ -59,7 +59,9 @@ def readBeaconLocations():
     df = pd.DataFrame(readdata)  # convert data into pandas dataframe
     for i, row in df.iterrows():
         print(row['mac'], row['location'])
+    return df
 
 
-df = readBeaconLocations()
-app.run()
+if __name__ == "__main__":
+    df = readBeaconLocations()
+    app.run()
