@@ -55,10 +55,11 @@ def debug():
 
 
 def readBeaconLocations():
-    readdata = pd.read_csv("beacon_locations.txt")
+    readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location"], sep=":")
     df = pd.DataFrame(readdata)  # convert data into pandas dataframe
-    print(df)
+    for i, row in df.iterrows():
+        print(row['mac'], row['location'])
 
 
-readBeaconLocations()
+df = readBeaconLocations()
 app.run()
