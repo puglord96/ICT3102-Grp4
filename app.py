@@ -2,10 +2,10 @@ from flask import Flask
 from flask import request
 from flask_ngrok import run_with_ngrok
 from flask import Flask, request, Response
+import pandas as pd
 
 app = Flask(__name__)
 run_with_ngrok(app)
-
 
 
 @app.route('/')
@@ -44,14 +44,21 @@ def get_beacon_info():
         }
         return payload_dict
 
+
 @app.route("/debug", methods=["POST"])
 def debug():
     rssiInput = request.form["rssiInput"]
     macInput = request.form["macInput"]
-    print("rssi: ",rssiInput)
-    print("mac: ",macInput)
+    print("rssi: ", rssiInput)
+    print("mac: ", macInput)
     return "received"
 
 
+def readBeaconLocations():
+    readdata = pd.read_csv("beacon_locations.txt")
+    df = pd.DataFrame(readdata)  # convert data into pandas dataframe
+    print(df)
 
+
+readBeaconLocations()
 app.run()
