@@ -1,6 +1,11 @@
-from flask import Flask,request
+from flask import Flask
+from flask import request
+from flask_ngrok import run_with_ngrok
+from flask import Flask, request, Response
 
 app = Flask(__name__)
+run_with_ngrok(app)
+
 
 
 @app.route('/')
@@ -39,6 +44,14 @@ def get_beacon_info():
         }
         return payload_dict
 
+@app.route("/debug", methods=["POST"])
+def debug():
+    rssiInput = request.form["rssiInput"]
+    macInput = request.form["macInput"]
+    print("rssi: ",rssiInput)
+    print("mac: ",macInput)
+    return "received"
 
-if __name__ == '__main__':
-    app.run()
+
+
+app.run()
