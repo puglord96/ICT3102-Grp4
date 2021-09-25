@@ -52,18 +52,16 @@ def get_beacon_info():
 
 @app.route("/beaconinfo", methods=["POST"])
 def beaconinfo():
-    staff_id = 1
+    staff_id = request.form["staffId"]
     rssiInput = request.form["rssiInput"]
     macInput = request.form["macInput"]
-    print("rssi: ", rssiInput)
-    print("mac: ", macInput)
-    print("staff id: ", staff_id)
+    addNewRecord(staff_id, rssiInput, macInput)
+    print(beaconLocList)
     return "200: OK"
 
 
 def addNewRecord(staff_id, mac, rssi):
-    new_row = {'staff_id': staff_id, 'mac': mac, 'rssi': rssi}
-    bi.append(new_row, ignore_index=True)
+    beaconLocList.append({'staff_id': staff_id, 'mac': mac, 'rssi': rssi})
 
 
 def readBeaconLocations():
@@ -76,6 +74,6 @@ def readBeaconLocations():
 
 if __name__ == "__main__":
     df = readBeaconLocations()
-    bi = pd.DataFrame()
-    bi.columns = ['staff_id', 'mac', 'rssi']
+    beaconLocList = [] # store latest beacon updates from android
+    # beaconLocList.append({'staff_id': 1, 'mac': 'abcde1234', 'rssi': -55})
     app.run()
