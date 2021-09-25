@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask import request
 from flask_ngrok import run_with_ngrok
 from flask import Flask, request, Response
@@ -10,7 +10,7 @@ run_with_ngrok(app)
 
 @app.route('/')
 def hello_world():
-    return 'Hello World!'
+    return render_template('dashboard.html')
 
 
 @app.route('/extractbeacon', methods=['GET'])
@@ -50,6 +50,7 @@ def get_beacon_info():
         return payload_dict
 
 
+# retrieve beacon information from android phone (staff id, rssi and mac address)
 @app.route("/beaconinfo", methods=["POST"])
 def beaconinfo():
     staff_id = request.form["staffId"]
@@ -57,23 +58,24 @@ def beaconinfo():
     macInput = request.form["macInput"]
     addNewRecord(staff_id, rssiInput, macInput)
     print(beaconLocList)
-    return "200: OK"
 
 
+# add record into beacon location list
 def addNewRecord(staff_id, mac, rssi):
     beaconLocList.append({'staff_id': staff_id, 'mac': mac, 'rssi': rssi})
 
 
+# import location based on mac address from text file
 def readBeaconLocations():
     readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location"], sep=":")
     df = pd.DataFrame(readdata)  # convert data into pandas dataframe
-    for i, row in df.iterrows():
-        print(row['mac'], row['location'])
+    # for i, row in df.iterrows():
+    #    print(row['mac'], row['location'])
     return df
 
 
 if __name__ == "__main__":
     df = readBeaconLocations()
-    beaconLocList = [] # store latest beacon updates from android
+    beaconLocList = []  # store latest beacon updates from android
     # beaconLocList.append({'staff_id': 1, 'mac': 'abcde1234', 'rssi': -55})
     app.run()
