@@ -158,7 +158,7 @@ def simulatedAndroidData():
             addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" or __name__ == "app":
     df = readBeaconLocations()
     staffLocDict = {}  # store latest beacon updates from android
     roomList = {}
@@ -176,4 +176,6 @@ if __name__ == "__main__":
     sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=20)
     sched_1.start()
     ##################################################
-    app.run(host='0.0.0.0', port=5000)
+    if __name__ == "__main__":
+        app.run(host='0.0.0.0', port=5000)
+
