@@ -17,15 +17,16 @@ run_with_ngrok(app)
 
 @app.route('/')
 def hello_world():
-    # cleanList()
-    global beaconLocDict
-    return render_template('dashboard.html', beaconLocDict=beaconLocDict)
+    global staffLocDict
+    global roomList
+    currentTime = time.time()
+    return render_template('dashboard.html', staffLocDict=staffLocDict, roomList=roomList, currentTime=currentTime)
 
 
 def cleanList():
-    global beaconLocDict
-    for key in beaconLocDict:
-        beaconLocDict[key] = sorted(beaconLocDict[key], key=lambda i: (i['timestamp']), reverse=True)
+    global staffLocDict
+    for key in staffLocDict:
+        staffLocDict[key] = sorted(staffLocDict[key], key=lambda i: (i['timestamp']), reverse=True)
 
 
 @app.route('/extractbeacon', methods=['GET'])
@@ -35,15 +36,16 @@ def get_beacon_info():
         hawcs_start_time = int(request.args['start_time'])
         hawcs_end_time = int(request.args['end_time'])
         hawcs_staff_id = int(request.args['staff_id'])
-        if hawcs_staff_id in beaconLocDict:
-            for key in beaconLocDict[hawcs_staff_id]:
-                print (key)
-                if hawcs_start_time <key['timestamp'] < hawcs_end_time:
+        if hawcs_staff_id in staffLocDict:
+            for key in staffLocDict[hawcs_staff_id]:
+                print(key)
+                if hawcs_start_time < key['timestamp'] < hawcs_end_time:
                     if 'location' in beaconLocHAWCS:
                         beaconLocHAWCS["location"].append(
                             {'level': key['level'], 'location': key['location'], 'timestamp': key['timestamp']})
                     else:
-                        beaconLocHAWCS["location"] = [{'level': key['level'], 'location': key['location'], 'timestamp': key['timestamp']}]
+                        beaconLocHAWCS["location"] = [
+                            {'level': key['level'], 'location': key['location'], 'timestamp': key['timestamp']}]
     return beaconLocHAWCS
 
 
@@ -51,31 +53,28 @@ def get_beacon_info():
 @app.route("/beaconinfo", methods=["POST"])
 def beaconinfo():
     timestamp = int(time.time())
-    staff_id = request.form["staffId"]
-    rssiInput = request.form["rssiInput"]
+    staff_id = int(request.form["staffId"])
+    rssiInput = int(request.form["rssiInput"])
     macInput = request.form["macInput"]
     if rssiInput > -60:
         addNewRecord(staff_id, macInput, rssiInput, timestamp)
-    print(beaconLocDict)
+    print(staffLocDict)
 
 
 # add record into beacon location list
 def addNewRecord(staff_id, mac, rssi, timestamp):
-    global hawcs_staffLocReq
-    global hawcs_staff_id
-    global hawcs_start_time
-    global hawcs_end_time
-    global beaconLocDict
-    # print(beaconLocDict)
+    global staffLocDict
     location, level = findLocationByMac(mac)
-    if staff_id in beaconLocDict:
-        beaconLocDict[staff_id].append(
+    if staff_id in staffLocDict:
+        staffLocDict[staff_id].append(
             {'mac': mac, 'rssi': rssi, 'level': level, 'location': location, 'timestamp': timestamp})
         cleanList()  # sort by latest timestamp
+        updateRoomVisits(staff_id, location, mac, timestamp)
     else:
-        beaconLocDict[staff_id] = [
+        staffLocDict[staff_id] = [
             {'mac': mac, 'rssi': rssi, 'level': level, 'location': location, 'timestamp': timestamp}]
         cleanList()  # sort by latest timestamp
+        updateRoomVisits(staff_id, location, mac, timestamp)
 
 
 # find location based on mac address:
@@ -90,13 +89,43 @@ def findLocationByMac(mac):
 def readBeaconLocations():
     readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=":")
     df = pd.DataFrame(readdata)  # convert data into pandas dataframe
+    df['location'] = df['location'].str.replace('\"', '')
     # for i, row in df.iterrows():
     #     print(row['mac'], row['location'], row['level'])
     return df
 
 
+# initialise room visits:
+def initRoomListVisits():
+    global df
+    global roomList
+    for i, row in df.iterrows():
+        if row['location'] in roomList:
+            roomList[row['location']]['mac'].append(row['mac'])
+        else:
+            roomList[row['location']] = {'mac': [row['mac']], 'visit': 0, 'lastvisit': int(time.time())}
 
-# to be removed once done 
+
+# update room visits:
+def updateRoomVisits(staff_id, location, mac, timestamp):
+    global staffLocDict
+    global roomList
+    # update number of staff
+    if len(staffLocDict[staff_id]) > 1:
+        if staffLocDict[staff_id][0]['location'] != staffLocDict[staff_id][1]['location']:
+            roomList[location]['visit'] += 1
+            roomList[location]['lastvisit'] = timestamp
+
+            # previous staff location
+            room = staffLocDict[staff_id][1]['location']
+            # minus visit
+            roomList[room]['visit'] -= 1
+    else:
+        roomList[location]['visit'] += 1
+        roomList[location]['lastvisit'] = timestamp
+    print (roomList)
+
+# to be removed once done
 def simulatedAndroidData():
     global simulated_mac
     timestamp = int(time.time())
@@ -109,31 +138,14 @@ def simulatedAndroidData():
 
 if __name__ == "__main__":
     df = readBeaconLocations()
-    beaconLocDict = {}  # store latest beacon updates from android
-    roomList = {} # store
+    staffLocDict = {}  # store latest beacon updates from android
+    roomList = {}
+    initRoomListVisits()
+    # to be remove once android part has been updated
     import random
     simulated_mac = ["DE69F34B12FB", "ECAC7EDCDF93", "F68644A3A846"]
     sched_0 = BackgroundScheduler(daemon=True)
     sched_0.add_job(simulatedAndroidData, 'interval', seconds=1)
     sched_0.start()
+    ##################################################
     app.run()
-
-# payload_dict = {
-#     "location": [
-#         {
-#             "level": 3,
-#             "location": "ROOM 4",
-#             "timestamp": start_time + 1
-#         },
-#         {
-#             "level": 7,
-#             "location": "SR7D",
-#             "timestamp": start_time + 2
-#         },
-#         {
-#             "level": 7,
-#             "location": "ROOM 4",
-#             "timestamp": start_time + 3
-#         }
-#     ]
-# }

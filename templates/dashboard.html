@@ -2,6 +2,8 @@
 {% include 'header.html' %}
 <body>
 <div class="container">
+
+  <!-- Current Location of staff -->
   <h4>Current Location of Staff</h4>
   <table class="table">
     <thead>
@@ -14,7 +16,7 @@
       </tr>
     </thead>
     <tbody>
-    {% for key, value in beaconLocDict.items() %}
+    {% for key, value in staffLocDict.items() %}
       <tr>
         <td>{{key}}</td>
         <td>{{value[0]['mac']}}</td>
@@ -22,6 +24,49 @@
         <td>{{value[0]['location']}}</td>
         <td>{{value[0]['timestamp']}}</td>
       </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+    <!-- Number of Staff Per Room -->
+  <h4>Number of Staff Per Room</h4>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Number of Staff</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for key, value in roomList.items() %}
+    {% if value['visit'] != 0 %}
+      <tr>
+        <td>{{key}}</td>
+        <td>{{value['visit']}}</td>
+      </tr>
+    {% endif %}
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- List of rooms unpatrolled -->
+  <h4>List of Rooms Unpatrolled</h4>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Last Visit</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for key, value in roomList.items() %}
+    {% set time = currentTime - value['lastvisit'] %}
+    {% if time > 30 %}
+      <tr>
+        <td>{{key}}</td>
+        <td>{{value['lastvisit']}}</td>
+      </tr>
+    {% endif %}
     {% endfor %}
     </tbody>
   </table>
