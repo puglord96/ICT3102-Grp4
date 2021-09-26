@@ -171,10 +171,10 @@ if __name__ == "__main__":
     readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=":")
     simulated_mac = pd.DataFrame(readdata)  # convert data into pandas dataframe
     sched_0 = BackgroundScheduler(daemon=True)
-    sched_0.add_job(simulatedAndroidData, 'interval', seconds=0.1)
+    sched_0.add_job(simulatedAndroidData, 'interval', seconds=1)
     sched_0.start()
     sched_1 = BackgroundScheduler(daemon=True)
-    sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=10)
+    sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=20)
     sched_1.start()
     ##################################################
     app.run()
