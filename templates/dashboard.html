@@ -1,6 +1,30 @@
 <!DOCTYPE html>
 {% include 'header.html' %}
 <body>
-Hello World!
+<div class="container">
+  <h4>Current Location of Staff</h4>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Staff ID</th>
+        <th>Mac Address</th>
+        <th>Level</th>
+        <th>Location</th>
+        <th>Time Stamp</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for key, value in beaconLocDict.items() %}
+      <tr>
+        <td>{{key}}</td>
+        <td>{{value[0]['mac']}}</td>
+        <td>{{value[0]['level']}}</td>
+        <td>{{value[0]['location']}}</td>
+        <td>{{value[0]['timestamp']}}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
 </body>
 </html>

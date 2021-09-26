@@ -1,9 +1,10 @@
 # Functional Requirements:
-# 1. The system shall be able to detect the location of the user (response time)
-# 2. The system shall be able to detect the number of users at a particular location at a particular time (throughput)
+# 1. The system shall be able to detect the location of the user (response time) - DONE
+# 2. The system shall be able to detect the number of users at a particular location at the current time (throughput)
 # 3. The system shall be able to get alerts of the location which is unpatrolled for a certain period. (response time)
 import time
 
+from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template
 from flask import request
 from flask_ngrok import run_with_ngrok
@@ -16,43 +17,34 @@ run_with_ngrok(app)
 
 @app.route('/')
 def hello_world():
-    return render_template('dashboard.html')
+    # cleanList()
+    global beaconLocDict
+    return render_template('dashboard.html', beaconLocDict=beaconLocDict)
+
+
+def cleanList():
+    global beaconLocDict
+    for key in beaconLocDict:
+        beaconLocDict[key] = sorted(beaconLocDict[key], key=lambda i: (i['timestamp']), reverse=True)
 
 
 @app.route('/extractbeacon', methods=['GET'])
 def get_beacon_info():
-    # Possible parameters passed via URL
-    # staff_id = 0
-    # start_time = 1632192072
-    # end_time = 1632192082
-    # Change below logic/variables as needed. Currently matches 'template' in project brief
-    # rssiInput, macInput = beaconinfo()
+    beaconLocHAWCS = {}  # store latest beacon updates from android upon request from HAWCS server
     if 'start_time' in request.args:
-        start_time = int(request.args['start_time'])
-        end_time = int(request.args['end_time'])
-        staff_id = int(request.args['staff_id'])
-        print("start time: " + str(start_time))
-        print("end time: " + str(end_time))
-        print("staff id: " + str(staff_id))
-        # payload_dict = {
-        #     "location": [
-        #         {
-        #             "level": 3,
-        #             "location": "ROOM 4",
-        #             "timestamp": start_time + 1
-        #         },
-        #         {
-        #             "level": 7,
-        #             "location": "SR7D",
-        #             "timestamp": start_time + 2
-        #         },
-        #         {
-        #             "level": 7,
-        #             "location": "ROOM 4",
-        #             "timestamp": start_time + 3
-        #         }
-        #     ]
-        # }
+        hawcs_start_time = int(request.args['start_time'])
+        hawcs_end_time = int(request.args['end_time'])
+        hawcs_staff_id = int(request.args['staff_id'])
+        if hawcs_staff_id in beaconLocDict:
+            for key in beaconLocDict[hawcs_staff_id]:
+                print (key)
+                if hawcs_start_time <key['timestamp'] < hawcs_end_time:
+                    if 'location' in beaconLocHAWCS:
+                        beaconLocHAWCS["location"].append(
+                            {'level': key['level'], 'location': key['location'], 'timestamp': key['timestamp']})
+                    else:
+                        beaconLocHAWCS["location"] = [{'level': key['level'], 'location': key['location'], 'timestamp': key['timestamp']}]
+    return beaconLocHAWCS
 
 
 # retrieve beacon information from android phone (staff id, rssi and mac address)
@@ -62,39 +54,86 @@ def beaconinfo():
     staff_id = request.form["staffId"]
     rssiInput = request.form["rssiInput"]
     macInput = request.form["macInput"]
-    addNewRecord(staff_id, macInput, rssiInput, timestamp)
+    if rssiInput > -60:
+        addNewRecord(staff_id, macInput, rssiInput, timestamp)
     print(beaconLocDict)
 
 
 # add record into beacon location list
 def addNewRecord(staff_id, mac, rssi, timestamp):
-    location = findLocationByMac(mac)
+    global hawcs_staffLocReq
+    global hawcs_staff_id
+    global hawcs_start_time
+    global hawcs_end_time
+    global beaconLocDict
+    # print(beaconLocDict)
+    location, level = findLocationByMac(mac)
     if staff_id in beaconLocDict:
-        beaconLocDict[staff_id].append({'rssi': rssi, 'location': location, 'timestamp': timestamp })
+        beaconLocDict[staff_id].append(
+            {'mac': mac, 'rssi': rssi, 'level': level, 'location': location, 'timestamp': timestamp})
+        cleanList()  # sort by latest timestamp
     else:
-        beaconLocDict[staff_id] = [{'rssi': rssi, 'location': location, 'timestamp': timestamp}]
+        beaconLocDict[staff_id] = [
+            {'mac': mac, 'rssi': rssi, 'level': level, 'location': location, 'timestamp': timestamp}]
+        cleanList()  # sort by latest timestamp
 
 
 # find location based on mac address:
 def findLocationByMac(mac):
     for i, row in df.iterrows():
         if row['mac'] == mac:
-            return row['location']
-        else:
-            return None
+            return row['location'], row['level']
+    return None, None
 
 
 # import location based on mac address from text file
 def readBeaconLocations():
-    readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location"], sep=":")
+    readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=":")
     df = pd.DataFrame(readdata)  # convert data into pandas dataframe
     # for i, row in df.iterrows():
-    #    print(row['mac'], row['location'])
+    #     print(row['mac'], row['location'], row['level'])
     return df
+
+
+
+# to be removed once done 
+def simulatedAndroidData():
+    global simulated_mac
+    timestamp = int(time.time())
+    staff_id = random.randint(0, 2)
+    rssiInput = random.randint(-100, 0)
+    macInput = random.choice(simulated_mac)
+    if rssiInput > -60:
+        addNewRecord(staff_id, macInput, rssiInput, timestamp)
 
 
 if __name__ == "__main__":
     df = readBeaconLocations()
     beaconLocDict = {}  # store latest beacon updates from android
-    # beaconLocList.append({'staff_id': 1, 'mac': 'abcde1234', 'rssi': -55})
+    roomList = {} # store
+    import random
+    simulated_mac = ["DE69F34B12FB", "ECAC7EDCDF93", "F68644A3A846"]
+    sched_0 = BackgroundScheduler(daemon=True)
+    sched_0.add_job(simulatedAndroidData, 'interval', seconds=1)
+    sched_0.start()
     app.run()
+
+# payload_dict = {
+#     "location": [
+#         {
+#             "level": 3,
+#             "location": "ROOM 4",
+#             "timestamp": start_time + 1
+#         },
+#         {
+#             "level": 7,
+#             "location": "SR7D",
+#             "timestamp": start_time + 2
+#         },
+#         {
+#             "level": 7,
+#             "location": "ROOM 4",
+#             "timestamp": start_time + 3
+#         }
+#     ]
+# }
