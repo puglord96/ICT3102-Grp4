@@ -61,11 +61,20 @@
     <tbody>
     {% for key, value in roomList.items() %}
     {% set timecheck = currentTime - value['lastvisit'] %}
-    {% if timecheck > 30 %}
+    {% set count = namespace(value=0)%}
+      {% if timecheck > 30 %}
+        {% for keyStaff, valueStaff in staffLocDict.items() %}
+        {% if valueStaff[0]['location'] != value['location'] %}
+        {% else %}
+          {% set count.value = count.value + 1 %}
+        {% endif %}
+        {% endfor %}
+      {%if count.value == 0 %}
       <tr>
         <td>{{key}}</td>
         <td>{{time.ctime(value['lastvisit'])}}</td>
       </tr>
+      {% endif %}
     {% endif %}
     {% endfor %}
     </tbody>
