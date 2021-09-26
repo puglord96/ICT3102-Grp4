@@ -22,7 +22,7 @@
         <td>{{value[0]['mac']}}</td>
         <td>{{value[0]['level']}}</td>
         <td>{{value[0]['location']}}</td>
-        <td>{{value[0]['timestamp']}}</td>
+        <td>{{time.ctime(value[0]['timestamp'])}}</td>
       </tr>
     {% endfor %}
     </tbody>
@@ -60,11 +60,11 @@
     </thead>
     <tbody>
     {% for key, value in roomList.items() %}
-    {% set time = currentTime - value['lastvisit'] %}
-    {% if time > 30 %}
+    {% set timecheck = currentTime - value['lastvisit'] %}
+    {% if timecheck > 30 %}
       <tr>
         <td>{{key}}</td>
-        <td>{{value['lastvisit']}}</td>
+        <td>{{time.ctime(value['lastvisit'])}}</td>
       </tr>
     {% endif %}
     {% endfor %}

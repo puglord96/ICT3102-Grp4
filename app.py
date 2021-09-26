@@ -19,8 +19,9 @@ run_with_ngrok(app)
 def hello_world():
     global staffLocDict
     global roomList
-    currentTime = time.time()
-    return render_template('dashboard.html', staffLocDict=staffLocDict, roomList=roomList, currentTime=currentTime)
+    currentTime = int(time.time())
+    return render_template('dashboard.html', staffLocDict=staffLocDict, roomList=roomList, currentTime=currentTime,
+                           time=time)
 
 
 def cleanList():
@@ -123,7 +124,8 @@ def updateRoomVisits(staff_id, location, mac, timestamp):
     else:
         roomList[location]['visit'] += 1
         roomList[location]['lastvisit'] = timestamp
-    print (roomList)
+    print(roomList)
+
 
 # to be removed once done
 def simulatedAndroidData():
@@ -143,6 +145,7 @@ if __name__ == "__main__":
     initRoomListVisits()
     # to be remove once android part has been updated
     import random
+
     simulated_mac = ["DE69F34B12FB", "ECAC7EDCDF93", "F68644A3A846"]
     sched_0 = BackgroundScheduler(daemon=True)
     sched_0.add_job(simulatedAndroidData, 'interval', seconds=1)
