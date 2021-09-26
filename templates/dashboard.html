@@ -61,7 +61,7 @@
     <tbody>
     {% for key, value in roomList.items() %}
     {% set timecheck = currentTime - value['lastvisit'] %}
-      {% if timecheck > 30 and value['visit'] == 0 %}
+      {% if timecheck > 1800 and value['visit'] == 0 %}
       <tr>
         <td>{{key}}</td>
         <td>{{time.ctime(value['lastvisit'])}}</td>
