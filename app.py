@@ -10,9 +10,43 @@ from flask import request
 # from flask_ngrok import run_with_ngrok
 from flask import Flask, request, Response
 import pandas as pd
-import sqlite3
+import re
+import sqlite3 as sql
 
 app = Flask(__name__)
+beacons = []
+with open('beacon_locations.txt') as f:
+    beaconline = f.readline()
+    while beaconline:
+        beaconline = f.readline().replace(": ",":").strip().replace("'","").replace('"','')
+
+        beaconlinearr = beaconline.split(":")
+        beacons.append(beaconlinearr)
+
+del beacons[-1]
+
+# with sql.connect("beacons.db") as con:
+#
+#
+#     for beaconinfo in beacons:
+#         cur = con.cursor()
+#         cur.execute("INSERT INTO beacons values (?,?,?)",(beaconinfo[0],beaconinfo[1],beaconinfo[2]))
+#         con.commit()
+#
+# con.close()
+
+con = sql.connect("beacons.db")
+
+cur = con.cursor()
+cur.execute("select * from beacons")
+
+rows = cur.fetchall()
+
+for row in rows:
+    print(row)
+
+
+
 
 
 # run_with_ngrok(app)

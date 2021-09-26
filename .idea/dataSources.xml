@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="beacons" uuid="ce75b6b7-fbca-4491-90c4-5b674b7d5edd">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:C:\Users\Wong Kin Seong\Documents\GitHub\ICT3102-Grp4\beacons.db</jdbc-url>
+    </data-source>
+    <data-source source="LOCAL" name="database" uuid="11fadc8c-0478-4c15-aa1a-ffbe1f083de7">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:C:\Users\Wong Kin Seong\Documents\GitHub\ICT3102-Grp4\database.db</jdbc-url>
+    </data-source>
+  </component>
+</project>
