@@ -34,6 +34,7 @@ def hello_world():
     return render_template('dashboard.html', staffLocDict=staffLocDict, roomList=roomList, currentTime=currentTime,
                            time=time)
 
+
 @app.route('/extractbeacon', methods=['GET'])
 def get_beacon_info():
     beaconLocHAWCS = {}  # store latest beacon updates from android upon request from HAWCS server
@@ -47,7 +48,8 @@ def get_beacon_info():
                 if hawcs_start_time < key['timestamp'] < hawcs_end_time:
                     if 'location' in beaconLocHAWCS:
                         beaconLocHAWCS["location"].insert(0,
-                            {'level': key['level'], 'location': key['location'], 'timestamp': key['timestamp']})
+                                                          {'level': key['level'], 'location': key['location'],
+                                                           'timestamp': key['timestamp']})
                     else:
                         beaconLocHAWCS["location"] = [
                             {'level': key['level'], 'location': key['location'], 'timestamp': key['timestamp']}]
@@ -57,13 +59,18 @@ def get_beacon_info():
 # retrieve beacon information from android phone (staff id, rssi and mac address)
 @app.route("/beaconinfo", methods=["POST"])
 def beaconinfo():
+    global simulated_mac
+    global staffLocDict
     timestamp = int(time.time())
     staff_id = int(request.form["staffId"])
     rssiInput = int(request.form["rssiInput"])
     macInput = request.form["macInput"]
+    location, level = findLocationByMac(macInput)
     if rssiInput > -60:
-        addNewRecord(staff_id, macInput, rssiInput, timestamp)
-    print(staffLocDict)
+        if staff_id not in staffLocDict:
+            addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
+        elif staffLocDict[staff_id][0]['location'] != location:
+            addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
 
 
 # add record into beacon location list
@@ -71,7 +78,8 @@ def addNewRecord(staff_id, mac, rssi, timestamp, location, level):
     global staffLocDict
     if staff_id in staffLocDict:
         staffLocDict[staff_id].insert(0,
-            {'mac': mac, 'rssi': rssi, 'level': level, 'location': location, 'timestamp': timestamp})
+                                      {'mac': mac, 'rssi': rssi, 'level': level, 'location': location,
+                                       'timestamp': timestamp})
         updateRoomVisits(staff_id, location, mac, timestamp)
     else:
         staffLocDict[staff_id] = [
@@ -139,7 +147,7 @@ def simulatedAndroidData():
     global simulated_mac
     global staffLocDict
     timestamp = int(time.time())
-    staff_id = random.randint(1,5)
+    staff_id = random.randint(1, 5)
     rssiInput = random.randint(-100, 0)
     macInput = random.choice(simulated_mac['mac'])
     location, level = findLocationByMac(macInput)
