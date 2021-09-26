@@ -26,6 +26,7 @@ def hello_world():
     # conn = sqlite3.connect('database.db')
     # print ("Opened database successfully");
     #
+    # remember to only call creation when it's the first time
     # conn.execute('CREATE TABLE students (name TEXT, addr TEXT, city TEXT, pin TEXT)')
     # print ("Table created successfully");
     # conn.close()
@@ -167,4 +168,4 @@ if __name__ == "__main__":
     sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=20)
     sched_1.start()
     ##################################################
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
