@@ -13,6 +13,8 @@ import pandas as pd
 import sqlite3
 
 app = Flask(__name__)
+
+
 # run_with_ngrok(app)
 
 
@@ -73,6 +75,7 @@ def beaconinfo():
 # add record into beacon location list
 def addNewRecord(staff_id, mac, rssi, timestamp):
     global staffLocDict
+
     location, level = findLocationByMac(mac)
     if staff_id in staffLocDict:
         staffLocDict[staff_id].append(
@@ -132,16 +135,23 @@ def updateRoomVisits(staff_id, location, mac, timestamp):
     else:
         roomList[location]['visit'] += 1
         roomList[location]['lastvisit'] = timestamp
-    print(roomList)
+    print(staffLocDict)
+
+
+def clearstaffLocDictItem():
+    global staffLocDict
+    cleanList()
+    for key, value in staffLocDict.items():
+        del staffLocDict[key][1:]
 
 
 # to be removed once done
 def simulatedAndroidData():
     global simulated_mac
     timestamp = int(time.time())
-    staff_id = random.randint(0, 2)
+    staff_id = random.randint(0, 5)
     rssiInput = random.randint(-100, 0)
-    macInput = random.choice(simulated_mac)
+    macInput = random.choice(simulated_mac['mac'])
     if rssiInput > -60:
         addNewRecord(staff_id, macInput, rssiInput, timestamp)
 
@@ -154,9 +164,14 @@ if __name__ == "__main__":
     # to be remove once android part has been updated
     import random
 
-    simulated_mac = ["DE69F34B12FB", "ECAC7EDCDF93", "F68644A3A846"]
+    # simulated_mac = ["DE69F34B12FB", "ECAC7EDCDF93", "F68644A3A846", "E7F82CE7B318"]
+    readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=":")
+    simulated_mac = pd.DataFrame(readdata)  # convert data into pandas dataframe
     sched_0 = BackgroundScheduler(daemon=True)
-    sched_0.add_job(simulatedAndroidData, 'interval', seconds=1)
+    sched_0.add_job(simulatedAndroidData, 'interval', seconds=0.5)
     sched_0.start()
+    sched_1 = BackgroundScheduler(daemon=True)
+    sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=10)
+    sched_1.start()
     ##################################################
     app.run()
