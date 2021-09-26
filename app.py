@@ -97,7 +97,7 @@ def findLocationByMac(mac):
 
 # import location based on mac address from text file
 def readBeaconLocations():
-    readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=":")
+    readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ")
     df = pd.DataFrame(readdata)  # convert data into pandas dataframe
     df['location'] = df['location'].str.replace('\"', '')
     # for i, row in df.iterrows():
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     import random
 
     # simulated_mac = ["DE69F34B12FB", "ECAC7EDCDF93", "F68644A3A846", "E7F82CE7B318"]
-    readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=":")
+    readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ")
     simulated_mac = pd.DataFrame(readdata)  # convert data into pandas dataframe
     sched_0 = BackgroundScheduler(daemon=True)
     sched_0.add_job(simulatedAndroidData, 'interval', seconds=1)
