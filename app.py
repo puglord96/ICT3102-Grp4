@@ -7,18 +7,26 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template
 from flask import request
-from flask_ngrok import run_with_ngrok
+# from flask_ngrok import run_with_ngrok
 from flask import Flask, request, Response
 import pandas as pd
+import sqlite3
 
 app = Flask(__name__)
-run_with_ngrok(app)
+# run_with_ngrok(app)
 
 
 @app.route('/')
 def hello_world():
     global staffLocDict
     global roomList
+
+    conn = sqlite3.connect('database.db')
+    print ("Opened database successfully");
+
+    conn.execute('CREATE TABLE students (name TEXT, addr TEXT, city TEXT, pin TEXT)')
+    print ("Table created successfully");
+    conn.close()
     currentTime = int(time.time())
     return render_template('dashboard.html', staffLocDict=staffLocDict, roomList=roomList, currentTime=currentTime,
                            time=time)
