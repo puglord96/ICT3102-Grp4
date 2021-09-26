@@ -23,12 +23,12 @@ def hello_world():
     global staffLocDict
     global roomList
 
-    conn = sqlite3.connect('database.db')
-    print ("Opened database successfully");
-
-    conn.execute('CREATE TABLE students (name TEXT, addr TEXT, city TEXT, pin TEXT)')
-    print ("Table created successfully");
-    conn.close()
+    # conn = sqlite3.connect('database.db')
+    # print ("Opened database successfully");
+    #
+    # conn.execute('CREATE TABLE students (name TEXT, addr TEXT, city TEXT, pin TEXT)')
+    # print ("Table created successfully");
+    # conn.close()
     currentTime = int(time.time())
     return render_template('dashboard.html', staffLocDict=staffLocDict, roomList=roomList, currentTime=currentTime,
                            time=time)
@@ -52,7 +52,7 @@ def get_beacon_info():
                 print(key)
                 if hawcs_start_time < key['timestamp'] < hawcs_end_time:
                     if 'location' in beaconLocHAWCS:
-                        beaconLocHAWCS["location"].append(
+                        beaconLocHAWCS["location"].insert(0,
                             {'level': key['level'], 'location': key['location'], 'timestamp': key['timestamp']})
                     else:
                         beaconLocHAWCS["location"] = [
@@ -73,12 +73,10 @@ def beaconinfo():
 
 
 # add record into beacon location list
-def addNewRecord(staff_id, mac, rssi, timestamp):
+def addNewRecord(staff_id, mac, rssi, timestamp, location, level):
     global staffLocDict
-
-    location, level = findLocationByMac(mac)
     if staff_id in staffLocDict:
-        staffLocDict[staff_id].append(
+        staffLocDict[staff_id].insert(0,
             {'mac': mac, 'rssi': rssi, 'level': level, 'location': location, 'timestamp': timestamp})
         cleanList()  # sort by latest timestamp
         updateRoomVisits(staff_id, location, mac, timestamp)
@@ -148,12 +146,17 @@ def clearstaffLocDictItem():
 # to be removed once done
 def simulatedAndroidData():
     global simulated_mac
+    global staffLocDict
     timestamp = int(time.time())
-    staff_id = random.randint(0, 5)
+    staff_id = random.randint(1,10)
     rssiInput = random.randint(-100, 0)
     macInput = random.choice(simulated_mac['mac'])
+    location, level = findLocationByMac(macInput)
     if rssiInput > -60:
-        addNewRecord(staff_id, macInput, rssiInput, timestamp)
+        if staff_id not in staffLocDict:
+            addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
+        elif staffLocDict[staff_id][0]['location'] != location:
+            addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
 
 
 if __name__ == "__main__":
@@ -168,7 +171,7 @@ if __name__ == "__main__":
     readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=":")
     simulated_mac = pd.DataFrame(readdata)  # convert data into pandas dataframe
     sched_0 = BackgroundScheduler(daemon=True)
-    sched_0.add_job(simulatedAndroidData, 'interval', seconds=0.5)
+    sched_0.add_job(simulatedAndroidData, 'interval', seconds=0.1)
     sched_0.start()
     sched_1 = BackgroundScheduler(daemon=True)
     sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=10)
