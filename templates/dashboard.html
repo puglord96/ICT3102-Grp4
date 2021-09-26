@@ -39,12 +39,10 @@
     </thead>
     <tbody>
     {% for key, value in roomList.items() %}
-    {% if value['visit'] != 0 %}
       <tr>
         <td>{{key}}</td>
         <td>{{value['visit']}}</td>
       </tr>
-    {% endif %}
     {% endfor %}
     </tbody>
   </table>

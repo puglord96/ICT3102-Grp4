@@ -94,3 +94,5 @@
 "C2BF4E1F0E2A": "Level 7 Lift Lobby": 7
 "C639BBBE3557": "Level 7 Lift Lobby": 7
 "DB0896A9CC33": "Level 7 Lift Lobby": 7
+"D47A5B899C88": "Test Beacon 1": 10
+"E87F9C709B7A": "Test Beacon 2": 9

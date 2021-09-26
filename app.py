@@ -7,7 +7,7 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template
 from flask import request
-# from flask_ngrok import run_with_ngrok
+#from flask_ngrok import run_with_ngrok
 from flask import Flask, request, Response
 import pandas as pd
 import re
@@ -18,7 +18,7 @@ beacons = []
 with open('beacon_locations.txt') as f:
     beaconline = f.readline()
     while beaconline:
-        beaconline = f.readline().replace(": ",":").strip().replace("'","").replace('"','')
+        beaconline = f.readline().replace(": ", ":").strip().replace("'", "").replace('"', '')
 
         beaconlinearr = beaconline.split(":")
         beacons.append(beaconlinearr)
@@ -44,12 +44,6 @@ rows = cur.fetchall()
 
 for row in rows:
     print(row)
-
-
-
-
-
-# run_with_ngrok(app)
 
 
 @app.route('/')
@@ -98,13 +92,14 @@ def beaconinfo():
     timestamp = int(time.time())
     staff_id = int(request.form["staffId"])
     rssiInput = int(request.form["rssiInput"])
-    macInput = request.form["macInput"]
+    macInput = request.form["macInput"].replace(':', '')
     location, level = findLocationByMac(macInput)
     if rssiInput > -60:
         if staff_id not in staffLocDict:
             addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
         elif staffLocDict[staff_id][0]['location'] != location:
             addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
+    return "200 OK"
 
 
 # add record into beacon location list
@@ -134,6 +129,7 @@ def readBeaconLocations():
     readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ")
     df = pd.DataFrame(readdata)  # convert data into pandas dataframe
     df['location'] = df['location'].str.replace('\"', '')
+    df['mac'] = df['mac'].str.replace('\"', '')
     # for i, row in df.iterrows():
     #     print(row['mac'], row['location'], row['level'])
     return df
@@ -177,19 +173,19 @@ def clearstaffLocDictItem():
 
 
 # to be removed once done
-def simulatedAndroidData():
-    global simulated_mac
-    global staffLocDict
-    timestamp = int(time.time())
-    staff_id = random.randint(1, 5)
-    rssiInput = random.randint(-100, 0)
-    macInput = random.choice(simulated_mac['mac'])
-    location, level = findLocationByMac(macInput)
-    if rssiInput > -60:
-        if staff_id not in staffLocDict:
-            addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
-        elif staffLocDict[staff_id][0]['location'] != location:
-            addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
+# def simulatedAndroidData():
+#     global simulated_mac
+#     global staffLocDict
+#     timestamp = int(time.time())
+#     staff_id = random.randint(1, 5)
+#     rssiInput = random.randint(-100, 0)
+#     macInput = random.choice(simulated_mac['mac'])
+#     location, level = findLocationByMac(macInput)
+#     if rssiInput > -60:
+#         if staff_id not in staffLocDict:
+#             addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
+#         elif staffLocDict[staff_id][0]['location'] != location:
+#             addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
 
 
 if __name__ == "__main__":
@@ -201,11 +197,13 @@ if __name__ == "__main__":
     import random
 
     # simulated_mac = ["DE69F34B12FB", "ECAC7EDCDF93", "F68644A3A846", "E7F82CE7B318"]
-    readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ")
-    simulated_mac = pd.DataFrame(readdata)  # convert data into pandas dataframe
-    sched_0 = BackgroundScheduler(daemon=True)
-    sched_0.add_job(simulatedAndroidData, 'interval', seconds=1)
-    sched_0.start()
+    # readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ")
+    # simulated_mac = pd.DataFrame(readdata)  # convert data into pandas dataframe
+    # simulated_mac['location'] = simulated_mac['location'].str.replace('\"', '')
+    # simulated_mac['mac'] = simulated_mac['mac'].str.replace('\"', '')
+    # sched_0 = BackgroundScheduler(daemon=True)
+    # sched_0.add_job(simulatedAndroidData, 'interval', seconds=1)
+    # sched_0.start()
     sched_1 = BackgroundScheduler(daemon=True)
     sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=20)
     sched_1.start()
