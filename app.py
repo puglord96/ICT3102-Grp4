@@ -33,13 +33,6 @@ def hello_world():
     return render_template('dashboard.html', staffLocDict=staffLocDict, roomList=roomList, currentTime=currentTime,
                            time=time)
 
-
-def cleanList():
-    global staffLocDict
-    for key in staffLocDict:
-        staffLocDict[key] = sorted(staffLocDict[key], key=lambda i: (i['timestamp']), reverse=True)
-
-
 @app.route('/extractbeacon', methods=['GET'])
 def get_beacon_info():
     beaconLocHAWCS = {}  # store latest beacon updates from android upon request from HAWCS server
@@ -78,12 +71,10 @@ def addNewRecord(staff_id, mac, rssi, timestamp, location, level):
     if staff_id in staffLocDict:
         staffLocDict[staff_id].insert(0,
             {'mac': mac, 'rssi': rssi, 'level': level, 'location': location, 'timestamp': timestamp})
-        cleanList()  # sort by latest timestamp
         updateRoomVisits(staff_id, location, mac, timestamp)
     else:
         staffLocDict[staff_id] = [
             {'mac': mac, 'rssi': rssi, 'level': level, 'location': location, 'timestamp': timestamp}]
-        cleanList()  # sort by latest timestamp
         updateRoomVisits(staff_id, location, mac, timestamp)
 
 
@@ -138,7 +129,6 @@ def updateRoomVisits(staff_id, location, mac, timestamp):
 
 def clearstaffLocDictItem():
     global staffLocDict
-    cleanList()
     for key, value in staffLocDict.items():
         del staffLocDict[key][1:]
 
@@ -148,7 +138,7 @@ def simulatedAndroidData():
     global simulated_mac
     global staffLocDict
     timestamp = int(time.time())
-    staff_id = random.randint(1,10)
+    staff_id = random.randint(1,5)
     rssiInput = random.randint(-100, 0)
     macInput = random.choice(simulated_mac['mac'])
     location, level = findLocationByMac(macInput)
