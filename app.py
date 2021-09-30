@@ -94,11 +94,10 @@ def beaconinfo():
     rssiInput = int(request.form["rssiInput"])
     macInput = request.form["macInput"].replace(':', '')
     location, level = findLocationByMac(macInput)
-    if rssiInput > -60:
-        if staff_id not in staffLocDict:
-            addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
-        elif staffLocDict[staff_id][0]['location'] != location:
-            addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
+    if staff_id not in staffLocDict:
+        addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
+    elif staffLocDict[staff_id][0]['location'] != location:
+        addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
     return "200 OK"
 
 

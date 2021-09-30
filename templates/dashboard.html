@@ -10,6 +10,7 @@
       <tr>
         <th>Staff ID</th>
         <th>Mac Address</th>
+        <th>RSSI</th>
         <th>Level</th>
         <th>Location</th>
         <th>Time Stamp</th>
@@ -20,6 +21,7 @@
       <tr>
         <td>{{key}}</td>
         <td>{{value[0]['mac']}}</td>
+        <td>{{value[0]['rssi']}}</td>
         <td>{{value[0]['level']}}</td>
         <td>{{value[0]['location']}}</td>
         <td>{{time.ctime(value[0]['timestamp'])}}</td>
