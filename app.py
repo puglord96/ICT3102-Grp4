@@ -80,6 +80,7 @@ def findLocationByMac(mac):
     for i, row in df.iterrows():
         if row['mac'] == mac:
             return row['location'], row['level']
+    print (mac)
     return None, None
 
 
@@ -122,7 +123,7 @@ def updateRoomVisits(staff_id, location, timestamp):
     else:
         roomList[location]['visit'] += 1
         roomList[location]['lastvisit'] = timestamp
-    print(staffLocDict)
+    #print(staffLocDict)
 
 
 def clearstaffLocDictItem():
