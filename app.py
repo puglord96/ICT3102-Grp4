@@ -7,56 +7,17 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template
 from flask import request
-#from flask_ngrok import run_with_ngrok
+# from flask_ngrok import run_with_ngrok
 from flask import Flask, request, Response
 import pandas as pd
-import re
-import sqlite3 as sql
 
 app = Flask(__name__)
-beacons = []
-with open('beacon_locations.txt') as f:
-    beaconline = f.readline()
-    while beaconline:
-        beaconline = f.readline().replace(": ", ":").strip().replace("'", "").replace('"', '')
-
-        beaconlinearr = beaconline.split(":")
-        beacons.append(beaconlinearr)
-
-del beacons[-1]
-
-# with sql.connect("beacons.db") as con:
-#
-#
-#     for beaconinfo in beacons:
-#         cur = con.cursor()
-#         cur.execute("INSERT INTO beacons values (?,?,?)",(beaconinfo[0],beaconinfo[1],beaconinfo[2]))
-#         con.commit()
-#
-# con.close()
-
-con = sql.connect("beacons.db")
-
-cur = con.cursor()
-cur.execute("select * from beacons")
-
-rows = cur.fetchall()
-
-for row in rows:
-    print(row)
-
 
 @app.route('/')
 def hello_world():
     global staffLocDict
     global roomList
 
-    # conn = sqlite3.connect('database.db')
-    # print ("Opened database successfully");
-    #
-    # remember to only call creation when it's the first time
-    # conn.execute('CREATE TABLE students (name TEXT, addr TEXT, city TEXT, pin TEXT)')
-    # print ("Table created successfully");
     # conn.close()
     currentTime = int(time.time())
     return render_template('dashboard.html', staffLocDict=staffLocDict, roomList=roomList, currentTime=currentTime,
@@ -87,7 +48,6 @@ def get_beacon_info():
 # retrieve beacon information from android phone (staff id, rssi and mac address)
 @app.route("/beaconinfo", methods=["POST"])
 def beaconinfo():
-    global simulated_mac
     global staffLocDict
     timestamp = int(time.time())
     staff_id = int(request.form["staffId"])
@@ -108,11 +68,11 @@ def addNewRecord(staff_id, mac, rssi, timestamp, location, level):
         staffLocDict[staff_id].insert(0,
                                       {'mac': mac, 'rssi': rssi, 'level': level, 'location': location,
                                        'timestamp': timestamp})
-        updateRoomVisits(staff_id, location, mac, timestamp)
+        updateRoomVisits(staff_id, location, timestamp)
     else:
         staffLocDict[staff_id] = [
             {'mac': mac, 'rssi': rssi, 'level': level, 'location': location, 'timestamp': timestamp}]
-        updateRoomVisits(staff_id, location, mac, timestamp)
+        updateRoomVisits(staff_id, location, timestamp)
 
 
 # find location based on mac address:
@@ -146,19 +106,19 @@ def initRoomListVisits():
 
 
 # update room visits:
-def updateRoomVisits(staff_id, location, mac, timestamp):
+def updateRoomVisits(staff_id, location, timestamp):
     global staffLocDict
     global roomList
     # update number of staff
     if len(staffLocDict[staff_id]) > 1:
-        if staffLocDict[staff_id][0]['location'] != staffLocDict[staff_id][1]['location']:
-            roomList[location]['visit'] += 1
-            roomList[location]['lastvisit'] = timestamp
+        # update number of staff in a room
+        roomList[location]['visit'] += 1
+        roomList[location]['lastvisit'] = timestamp
 
-            # previous staff location
-            room = staffLocDict[staff_id][1]['location']
-            # minus visit
-            roomList[room]['visit'] -= 1
+        # previous staff location
+        room = staffLocDict[staff_id][1]['location']
+        # minus visit
+        roomList[room]['visit'] -= 1
     else:
         roomList[location]['visit'] += 1
         roomList[location]['lastvisit'] = timestamp
@@ -209,4 +169,3 @@ if __name__ == "__main__" or __name__ == "app":
     ##################################################
     if __name__ == "__main__":
         app.run(host='0.0.0.0', port=5000)
-
