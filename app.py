@@ -11,21 +11,21 @@ from flask import Flask, request
 import pandas as pd
 
 app = Flask(__name__)
-app.config["flask_profiler"] = {
-    "enabled": True,
-    "storage": {
-    "engine": "mongodb"
-  },
-  "basicAuth":{
-    "enabled": True,
-    "username": "admin",
-    "password": "admin"
-  },
-  "ignore": [
-    "^/static/.*"
-  ]
-}
-flask_profiler.init_app(app)
+# app.config["flask_profiler"] = {
+#     "enabled": True,
+#     "storage": {
+#     "engine": "mongodb"
+#   },
+#   "basicAuth":{
+#     "enabled": True,
+#     "username": "admin",
+#     "password": "admin"
+#   },
+#   "ignore": [
+#     "^/static/.*"
+#   ]
+# }
+# flask_profiler.init_app(app)
 
 
 @app.route('/')
@@ -40,7 +40,7 @@ def hello_world():
 
 
 @app.route('/extractbeacon', methods=['GET'])
-@flask_profiler.profile()
+# @flask_profiler.profile()
 def get_beacon_info():
     beaconLocHAWCS = {}  # store latest beacon updates from android upon request from HAWCS server
     if 'start_time' in request.args:
@@ -63,7 +63,7 @@ def get_beacon_info():
 
 # retrieve beacon information from android phone (staff id, rssi and mac address)
 @app.route("/beaconinfo", methods=["POST"])
-@flask_profiler.profile()
+# @flask_profiler.profile()
 def beaconinfo():
     global staffLocDict
     timestamp = int(time.time())
