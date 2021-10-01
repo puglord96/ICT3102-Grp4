@@ -6,12 +6,27 @@ import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template
-from flask import request
-# from flask_ngrok import run_with_ngrok
-from flask import Flask, request, Response
+import flask_profiler
+from flask import Flask, request
 import pandas as pd
 
 app = Flask(__name__)
+app.config["flask_profiler"] = {
+    "enabled": True,
+    "storage": {
+        "engine": "sqlite"
+    },
+    "basicAuth": {
+        "enabled": True,
+        "username": "admin",
+        "password": "admin"
+    },
+    "ignore": [
+        "^/static/.*"
+    ]
+}
+flask_profiler.init_app(app)
+
 
 @app.route('/')
 def hello_world():
@@ -47,6 +62,7 @@ def get_beacon_info():
 
 # retrieve beacon information from android phone (staff id, rssi and mac address)
 @app.route("/beaconinfo", methods=["POST"])
+@flask_profiler.profile()
 def beaconinfo():
     global staffLocDict
     timestamp = int(time.time())
@@ -80,7 +96,7 @@ def findLocationByMac(mac):
     for i, row in df.iterrows():
         if row['mac'] == mac:
             return row['location'], row['level']
-    print (mac)
+    print(mac)
     return None, None
 
 
@@ -123,7 +139,7 @@ def updateRoomVisits(staff_id, location, timestamp):
     else:
         roomList[location]['visit'] += 1
         roomList[location]['lastvisit'] = timestamp
-    #print(staffLocDict)
+    # print(staffLocDict)
 
 
 def clearstaffLocDictItem():
@@ -154,7 +170,7 @@ if __name__ == "__main__" or __name__ == "app":
     roomList = {}
     initRoomListVisits()
     # to be remove once android part has been updated
-    import random
+    # import random
 
     # simulated_mac = ["DE69F34B12FB", "ECAC7EDCDF93", "F68644A3A846", "E7F82CE7B318"]
     # readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ")
@@ -162,7 +178,7 @@ if __name__ == "__main__" or __name__ == "app":
     # simulated_mac['location'] = simulated_mac['location'].str.replace('\"', '')
     # simulated_mac['mac'] = simulated_mac['mac'].str.replace('\"', '')
     # sched_0 = BackgroundScheduler(daemon=True)
-    # sched_0.add_job(simulatedAndroidData, 'interval', seconds=1)
+    # sched_0.add_job(simulatedAndroidData, 'interval', seconds=0.5)
     # sched_0.start()
     sched_1 = BackgroundScheduler(daemon=True)
     sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=20)
