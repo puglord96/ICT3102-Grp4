@@ -14,16 +14,16 @@ app = Flask(__name__)
 app.config["flask_profiler"] = {
     "enabled": True,
     "storage": {
-        "engine": "sqlite"
-    },
-    "basicAuth": {
-        "enabled": True,
-        "username": "admin",
-        "password": "admin"
-    },
-    "ignore": [
-        "^/static/.*"
-    ]
+    "engine": "mongodb"
+  },
+  "basicAuth":{
+    "enabled": True,
+    "username": "admin",
+    "password": "admin"
+  },
+  "ignore": [
+    "^/static/.*"
+  ]
 }
 flask_profiler.init_app(app)
 
@@ -40,6 +40,7 @@ def hello_world():
 
 
 @app.route('/extractbeacon', methods=['GET'])
+@flask_profiler.profile()
 def get_beacon_info():
     beaconLocHAWCS = {}  # store latest beacon updates from android upon request from HAWCS server
     if 'start_time' in request.args:
@@ -169,9 +170,9 @@ if __name__ == "__main__" or __name__ == "app":
     staffLocDict = {}  # store latest beacon updates from android
     roomList = {}
     initRoomListVisits()
+
     # to be remove once android part has been updated
     # import random
-
     # simulated_mac = ["DE69F34B12FB", "ECAC7EDCDF93", "F68644A3A846", "E7F82CE7B318"]
     # readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ")
     # simulated_mac = pd.DataFrame(readdata)  # convert data into pandas dataframe
