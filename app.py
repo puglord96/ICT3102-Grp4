@@ -3,40 +3,37 @@
 # 2. The system shall be able to detect the number of users at a particular location at the current time (throughput)
 # 3. The system shall be able to get alerts of the location which is unpatrolled for a certain period. (response time)
 import time
-
+from flask_swagger_ui import get_swaggerui_blueprint
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template
+from flask import jsonify, make_response
 import flask_profiler
 from flask import Flask, request
 import pandas as pd
 
 app = Flask(__name__)
-# app.config["flask_profiler"] = {
-#     "enabled": True,
-#     "storage": {
-#     "engine": "mongodb"
-#   },
-#   "basicAuth":{
-#     "enabled": True,
-#     "username": "admin",
-#     "password": "admin"
-#   },
-#   "ignore": [
-#     "^/static/.*"
-#   ]
-# }
-# flask_profiler.init_app(app)
+
+SWAGGER_URL = '/swagger'
+API_URL = '/static/swagger.json'
+swaggerui_blueprint = get_swaggerui_blueprint(SWAGGER_URL, API_URL, config={'app_name': 'Performance Testing'})
+app.register_blueprint(swaggerui_blueprint)
 
 
 @app.route('/')
 def hello_world():
     global staffLocDict
     global roomList
-
-    # conn.close()
+    roomList.clear()
+    initRoomListVisits()
     currentTime = int(time.time())
+    count = 0
+    if bool(staffLocDict) is True:
+        for key in staffLocDict:
+            roomList[staffLocDict[key][0]['location']]['visit'] += 1
+            roomList[staffLocDict[key][0]['location']]['lastvisit'] = staffLocDict[key][0]['timestamp']
+            count += 1
     return render_template('dashboard.html', staffLocDict=staffLocDict, roomList=roomList, currentTime=currentTime,
-                           time=time)
+                           time=time, count=count)
 
 
 @app.route('/extractbeacon', methods=['GET'])
@@ -49,7 +46,6 @@ def get_beacon_info():
         hawcs_staff_id = int(request.args['staff_id'])
         if hawcs_staff_id in staffLocDict:
             for key in staffLocDict[hawcs_staff_id]:
-                print(key)
                 if hawcs_start_time < key['timestamp'] < hawcs_end_time:
                     if 'location' in beaconLocHAWCS:
                         beaconLocHAWCS["location"].insert(0,
@@ -85,11 +81,9 @@ def addNewRecord(staff_id, mac, rssi, timestamp, location, level):
         staffLocDict[staff_id].insert(0,
                                       {'mac': mac, 'rssi': rssi, 'level': level, 'location': location,
                                        'timestamp': timestamp})
-        updateRoomVisits(staff_id, location, timestamp)
     else:
         staffLocDict[staff_id] = [
             {'mac': mac, 'rssi': rssi, 'level': level, 'location': location, 'timestamp': timestamp}]
-        updateRoomVisits(staff_id, location, timestamp)
 
 
 # find location based on mac address:
@@ -97,7 +91,6 @@ def findLocationByMac(mac):
     for i, row in df.iterrows():
         if row['mac'] == mac:
             return row['location'], row['level']
-    print(mac)
     return None, None
 
 
@@ -124,23 +117,23 @@ def initRoomListVisits():
 
 
 # update room visits:
-def updateRoomVisits(staff_id, location, timestamp):
-    global staffLocDict
-    global roomList
-    # update number of staff
-    if len(staffLocDict[staff_id]) > 1:
-        # update number of staff in a room
-        roomList[location]['visit'] += 1
-        roomList[location]['lastvisit'] = timestamp
-
-        # previous staff location
-        room = staffLocDict[staff_id][1]['location']
-        # minus visit
-        roomList[room]['visit'] -= 1
-    else:
-        roomList[location]['visit'] += 1
-        roomList[location]['lastvisit'] = timestamp
-    # print(staffLocDict)
+# def updateRoomVisits(staff_id, location, timestamp):
+#     global staffLocDict
+#     global roomList
+#     # update number of staff
+#     if len(staffLocDict[staff_id]) > 1:
+#         # update number of staff in a room
+#         roomList[location]['visit'] += 1
+#         roomList[location]['lastvisit'] = timestamp
+#
+#         # previous staff location
+#         room = staffLocDict[staff_id][1]['location']
+#         # minus visit
+#         roomList[room]['visit'] -= 1
+#     else:
+#         roomList[location]['visit'] += 1
+#         roomList[location]['lastvisit'] = timestamp
+#     # print(staffLocDict)
 
 
 def clearstaffLocDictItem():
@@ -169,10 +162,11 @@ if __name__ == "__main__" or __name__ == "app":
     df = readBeaconLocations()
     staffLocDict = {}  # store latest beacon updates from android
     roomList = {}
-    initRoomListVisits()
+    #initRoomListVisits()
 
     # to be remove once android part has been updated
     # import random
+    #
     # simulated_mac = ["DE69F34B12FB", "ECAC7EDCDF93", "F68644A3A846", "E7F82CE7B318"]
     # readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ")
     # simulated_mac = pd.DataFrame(readdata)  # convert data into pandas dataframe
@@ -181,9 +175,9 @@ if __name__ == "__main__" or __name__ == "app":
     # sched_0 = BackgroundScheduler(daemon=True)
     # sched_0.add_job(simulatedAndroidData, 'interval', seconds=0.5)
     # sched_0.start()
-    sched_1 = BackgroundScheduler(daemon=True)
-    sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=20)
-    sched_1.start()
+    # sched_1 = BackgroundScheduler(daemon=True)
+    # sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=20)
+    # sched_1.start()
     ##################################################
     if __name__ == "__main__":
         app.run(threaded=True, host='0.0.0.0', port=5000)
