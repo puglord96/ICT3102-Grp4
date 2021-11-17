@@ -10,8 +10,10 @@ from flask import jsonify, make_response
 import flask_profiler
 from flask import Flask, request
 import pandas as pd
+from flask_caching import Cache
 
 app = Flask(__name__)
+cache = Cache(app)
 
 SWAGGER_URL = '/swagger'
 API_URL = '/static/swagger.json'
@@ -20,6 +22,7 @@ app.register_blueprint(swaggerui_blueprint)
 
 
 @app.route('/')
+@cache.cached(timeout=30, query_string=True)
 def hello_world():
     global staffLocDict
     global roomList
@@ -35,7 +38,7 @@ def hello_world():
     return render_template('dashboard.html', staffLocDict=staffLocDict, roomList=roomList, currentTime=currentTime,
                            time=time, count=count)
 
-
+@cache.cached(timeout=30, query_string=True)
 @app.route('/extractbeacon', methods=['GET'])
 # @flask_profiler.profile()
 def get_beacon_info():
@@ -58,6 +61,7 @@ def get_beacon_info():
 
 
 # retrieve beacon information from android phone (staff id, rssi and mac address)
+@cache.cached(timeout=30, query_string=True)
 @app.route("/beaconinfo", methods=["POST"])
 # @flask_profiler.profile()
 def beaconinfo():
