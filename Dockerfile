@@ -17,8 +17,4 @@ RUN pip3 install -r requirements.txt
 
 COPY . /ICT3102-Grp4
 
-#CMD [ "python3", "app.py" ]
-
-CMD pkill gunicorn && gunicorn -w 4 -b 0.0.0.0:5000 app:app --daemon
-
-
+CMD [ "python3", "app.py" ]
