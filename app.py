@@ -3,7 +3,6 @@
 # 2. The system shall be able to detect the number of users at a particular location at the current time (throughput)
 # 3. The system shall be able to get alerts of the location which is unpatrolled for a certain period. (response time)
 import time
-from flask_swagger_ui import get_swaggerui_blueprint
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template
 from flask import jsonify, make_response
@@ -15,10 +14,6 @@ from flask_caching import Cache
 app = Flask(__name__)
 cache = Cache(app)
 
-SWAGGER_URL = '/swagger'
-API_URL = '/static/swagger.json'
-swaggerui_blueprint = get_swaggerui_blueprint(SWAGGER_URL, API_URL, config={'app_name': 'Performance Testing'})
-app.register_blueprint(swaggerui_blueprint)
 
 
 @app.route('/')
@@ -103,7 +98,7 @@ def findLocationByMac(mac):
 # import location based on mac address from text file
 @cache.cached(timeout=30, key_prefix="readBeaconLocations")
 def readBeaconLocations():
-    readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ")
+    readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ", engine='python')
     df = pd.DataFrame(readdata)  # convert data into pandas dataframe
     df['location'] = df['location'].str.replace('\"', '')
     df['mac'] = df['mac'].str.replace('\"', '')
@@ -183,9 +178,9 @@ if __name__ == "__main__" or __name__ == "app":
     # sched_0 = BackgroundScheduler(daemon=True)
     # sched_0.add_job(simulatedAndroidData, 'interval', seconds=0.1)
     # sched_0.start()
-    # sched_1 = BackgroundScheduler(daemon=True)
-    # sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=20)
-    # sched_1.start()
+    sched_1 = BackgroundScheduler(daemon=True)
+    sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=5)
+    sched_1.start()
     ##################################################
     if __name__ == "__main__":
-        app.run(threaded=True, host='0.0.0.0', port=5000)
+        app.run(host='0.0.0.0', port=5000)
