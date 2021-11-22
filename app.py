@@ -23,8 +23,8 @@ app.register_blueprint(swaggerui_blueprint)
 def hello_world():
     global staffLocDict
     global roomList
-    for key in roomList:
-        roomList[key]['visit'] = 0
+    roomList.clear()
+    initRoomListVisits()
     currentTime = int(time.time())
     count = 0
     if bool(staffLocDict) is True:
@@ -147,7 +147,7 @@ def clearstaffLocDictItem():
 #     global simulated_mac
 #     global staffLocDict
 #     timestamp = int(time.time())
-#     staff_id = random.randint(1, 10)
+#     staff_id = random.randint(1, 5)
 #     rssiInput = random.randint(-100, 0)
 #     macInput = random.choice(simulated_mac['mac'])
 #     location, level = findLocationByMac(macInput)
@@ -162,18 +162,18 @@ if __name__ == "__main__" or __name__ == "app":
     df = readBeaconLocations()
     staffLocDict = {}  # store latest beacon updates from android
     roomList = {}
-    initRoomListVisits()
+    #initRoomListVisits()
 
     # to be remove once android part has been updated
-    #import random
-
+    # import random
+    #
     # simulated_mac = ["DE69F34B12FB", "ECAC7EDCDF93", "F68644A3A846", "E7F82CE7B318"]
     # readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ")
     # simulated_mac = pd.DataFrame(readdata)  # convert data into pandas dataframe
     # simulated_mac['location'] = simulated_mac['location'].str.replace('\"', '')
     # simulated_mac['mac'] = simulated_mac['mac'].str.replace('\"', '')
     # sched_0 = BackgroundScheduler(daemon=True)
-    # sched_0.add_job(simulatedAndroidData, 'interval', seconds=0.1)
+    # sched_0.add_job(simulatedAndroidData, 'interval', seconds=0.5)
     # sched_0.start()
     # sched_1 = BackgroundScheduler(daemon=True)
     # sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=20)
