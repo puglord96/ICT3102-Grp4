@@ -22,7 +22,7 @@ app.register_blueprint(swaggerui_blueprint)
 
 
 @app.route('/')
-@cache.cached(timeout=5, query_string=True)
+@cache.cached(timeout=30, query_string=True)
 def hello_world():
     global staffLocDict
     global roomList
@@ -38,9 +38,8 @@ def hello_world():
     return render_template('dashboard.html', staffLocDict=staffLocDict, roomList=roomList, currentTime=currentTime,
                            time=time, count=count)
 
-
+@cache.cached(timeout=30, query_string=True)
 @app.route('/extractbeacon', methods=['GET'])
-@cache.cached(timeout=5, query_string=True)
 # @flask_profiler.profile()
 def get_beacon_info():
     beaconLocHAWCS = {}  # store latest beacon updates from android upon request from HAWCS server
@@ -62,9 +61,8 @@ def get_beacon_info():
 
 
 # retrieve beacon information from android phone (staff id, rssi and mac address)
-
+@cache.cached(timeout=30, query_string=True)
 @app.route("/beaconinfo", methods=["POST"])
-@cache.cached(timeout=5, query_string=True)
 # @flask_profiler.profile()
 def beaconinfo():
     global staffLocDict
@@ -101,7 +99,6 @@ def findLocationByMac(mac):
 
 
 # import location based on mac address from text file
-@cache.cached(timeout=30, key_prefix="readBeaconLocations")
 def readBeaconLocations():
     readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ")
     df = pd.DataFrame(readdata)  # convert data into pandas dataframe
@@ -113,7 +110,6 @@ def readBeaconLocations():
 
 
 # initialise room visits:
-@cache.cached(timeout=5, key_prefix="initRoomListVisits")
 def initRoomListVisits():
     global df
     global roomList
