@@ -2,19 +2,14 @@
 # 1. The system shall be able to detect the location of the user (response time) - DONE
 # 2. The system shall be able to detect the number of users at a particular location at the current time (throughput)
 # 3. The system shall be able to get alerts of the location which is unpatrolled for a certain period. (response time)
-import random
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, render_template
-from flask import Flask, request
+from flask import Flask, request, render_template
 import pandas as pd
 from flask_caching import Cache
 
 app = Flask(__name__)
-app.config['CACHE_TYPE'] = 'simple'
 cache = Cache(app)
-
-cache.init_app(app)
 
 
 @app.route('/')
@@ -36,7 +31,6 @@ def hello_world():
 
 @app.route('/extractbeacon', methods=['GET'])
 @cache.cached(timeout=10, query_string=True)
-# @flask_profiler.profile()
 def get_beacon_info():
     beaconLocHAWCS = {}  # store latest beacon updates from android upon request from HAWCS server
     if 'start_time' in request.args:
@@ -58,7 +52,7 @@ def get_beacon_info():
 
 # retrieve beacon information from android phone (staff id, rssi and mac address)
 @app.route("/beaconinfo", methods=["POST"])
-@cache.cached(timeout=5, query_string=True)
+#@cache.cached(timeout=5, query_string=True)
 def beaconinfo():
     # json_data = flask.request.json
     # timestamp = int(time.time())
@@ -77,15 +71,9 @@ def beaconinfo():
 # add record into beacon location list
 def addNewRecord(staff_id, mac, rssi, timestamp, location, level):
     if staff_id in staffLocDict:
-        if mac == staffLocDict[staff_id][0]['mac']:
-            staffLocDict[staff_id][0]['rssi'] = rssi
-            staffLocDict[staff_id][0]['timestamp'] = timestamp
-        else:
-            staffLocDict[staff_id][0]['mac'] = mac
-            staffLocDict[staff_id][0]['rssi'] = rssi
-            staffLocDict[staff_id][0]['level'] = level
-            staffLocDict[staff_id][0]['location'] = location
-            staffLocDict[staff_id][0]['timestamp'] = timestamp
+        staffLocDict[staff_id].insert(0,
+                                      {'mac': mac, 'rssi': rssi, 'level': level, 'location': location,
+                                       'timestamp': timestamp})
     else:
         staffLocDict[staff_id] = [
             {'mac': mac, 'rssi': rssi, 'level': level, 'location': location, 'timestamp': timestamp}]
@@ -123,6 +111,11 @@ def initRoomListVisits():
             roomList[row['location']] = {'mac': [row['mac']], 'visit': 0, 'lastvisit': int(time.time())}
 
 
+def clearStaffLocDictItem():
+    for key, value in staffLocDict.items():
+        del staffLocDict[key][1:]
+
+
 # to be removed once done
 # def simulatedAndroidData():
 #     global simulated_mac
@@ -156,6 +149,9 @@ if __name__ == "__main__" or __name__ == "app":
     # sched_0 = BackgroundScheduler(daemon=True)
     # sched_0.add_job(simulatedAndroidData, 'interval', seconds=0.1)
     # sched_0.start()
+    sched_1 = BackgroundScheduler(daemon=True)
+    sched_1.add_job(clearStaffLocDictItem, 'interval', seconds=20)
+    sched_1.start()
     ##################################################
     if __name__ == "__main__":
         app.run(host='0.0.0.0', port=5000)
