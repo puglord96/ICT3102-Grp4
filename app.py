@@ -5,14 +5,15 @@
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template
-from flask import jsonify, make_response
-import flask_profiler
 from flask import Flask, request
 import pandas as pd
 from flask_caching import Cache
 
 app = Flask(__name__)
+app.config['CACHE_TYPE'] = 'simple'
 cache = Cache(app)
+
+cache.init_app(app)
 
 
 
