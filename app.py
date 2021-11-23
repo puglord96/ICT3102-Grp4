@@ -68,10 +68,7 @@ def beaconinfo():
     rssiInput = int(request.form["rssiInput"])
     macInput = request.form["macInput"].replace(':', '')
     location, level = findLocationByMac(macInput)
-    if staff_id not in staffLocDict:
-        addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
-    elif staffLocDict[staff_id][0]['location'] != location:
-        addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
+    addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
     return "200 OK"
 
 
@@ -89,10 +86,11 @@ def addNewRecord(staff_id, mac, rssi, timestamp, location, level):
 
 # find location based on mac address:
 def findLocationByMac(mac):
-    for i, row in df.iterrows():
-        if row['mac'] == mac:
-            return row['location'], row['level']
-    return None, None
+    global df_dict
+    try:
+        return df_dict[mac]['location'], df_dict[mac]['level']
+    except:
+        return None, None
 
 
 # import location based on mac address from text file
@@ -102,9 +100,10 @@ def readBeaconLocations():
     df = pd.DataFrame(readdata)  # convert data into pandas dataframe
     df['location'] = df['location'].str.replace('\"', '')
     df['mac'] = df['mac'].str.replace('\"', '')
-    # for i, row in df.iterrows():
-    #     print(row['mac'], row['location'], row['level'])
-    return df
+    df_dict = {}
+    for i, row in df.iterrows():
+        df_dict[row['mac']] = {'location': row['location'], 'level': row['level']}
+    return df_dict, df
 
 
 # initialise room visits:
@@ -162,14 +161,14 @@ def clearstaffLocDictItem():
 
 
 if __name__ == "__main__" or __name__ == "app":
-    df = readBeaconLocations()
+    df_dict, df = readBeaconLocations()
     staffLocDict = {}  # store latest beacon updates from android
     roomList = {}
     initRoomListVisits()
 
     # to be remove once android part has been updated
-    #import random
-
+    # import random
+    #
     # simulated_mac = ["DE69F34B12FB", "ECAC7EDCDF93", "F68644A3A846", "E7F82CE7B318"]
     # readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ")
     # simulated_mac = pd.DataFrame(readdata)  # convert data into pandas dataframe
