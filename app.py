@@ -101,7 +101,6 @@ def findLocationByMac(mac):
 
 
 # import location based on mac address from text file
-@cache.cached(timeout=30, key_prefix="readBeaconLocations")
 def readBeaconLocations():
     readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ", engine='python')
     df = pd.DataFrame(readdata)  # convert data into pandas dataframe
@@ -114,7 +113,6 @@ def readBeaconLocations():
 
 
 # initialise room visits:
-@cache.cached(timeout=5, key_prefix="initRoomListVisits")
 def initRoomListVisits():
     global df
     global roomList
