@@ -179,7 +179,7 @@ if __name__ == "__main__" or __name__ == "app":
     # sched_0.add_job(simulatedAndroidData, 'interval', seconds=0.1)
     # sched_0.start()
     sched_1 = BackgroundScheduler(daemon=True)
-    sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=5)
+    sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=20)
     sched_1.start()
     ##################################################
     if __name__ == "__main__":
