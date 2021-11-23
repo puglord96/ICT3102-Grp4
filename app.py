@@ -9,7 +9,9 @@ import pandas as pd
 from flask_caching import Cache
 
 app = Flask(__name__)
+app.config['CACHE_TYPE'] = 'simple'
 cache = Cache(app)
+cache.init_app(app)
 
 
 @app.route('/')
