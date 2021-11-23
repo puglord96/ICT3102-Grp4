@@ -10,10 +10,17 @@ import pandas as pd
 from flask_caching import Cache
 
 app = Flask(__name__)
-app.config['CACHE_TYPE'] = 'simple'
+
+app.config['CACHE_TYPE'] = 'redis'
+app.config['CACHE_REDIS_HOST'] = 'redis'
+app.config['CACHE_REDIS_PORT'] = 6379
+app.config['CACHE_REDIS_DB'] = 0
+app.config['CACHE_REDIS_URL'] = 'redis://redis:6379/0'
+app.config['CACHE_DEFAULT_TIMEOUT'] = 500
+
 cache = Cache(app)
 
-cache.init_app(app)
+# cache.init_app(app)
 
 
 
