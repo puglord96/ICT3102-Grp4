@@ -2,6 +2,7 @@
 # 1. The system shall be able to detect the location of the user (response time) - DONE
 # 2. The system shall be able to detect the number of users at a particular location at the current time (throughput)
 # 3. The system shall be able to get alerts of the location which is unpatrolled for a certain period. (response time)
+import random
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template
@@ -16,9 +17,7 @@ cache = Cache(app)
 cache.init_app(app)
 
 
-
 @app.route('/')
-@cache.cached(timeout=5, query_string=True)
 def hello_world():
     global staffLocDict
     global roomList
@@ -36,7 +35,7 @@ def hello_world():
 
 
 @app.route('/extractbeacon', methods=['GET'])
-@cache.cached(timeout=5, query_string=True)
+@cache.cached(timeout=10, query_string=True)
 # @flask_profiler.profile()
 def get_beacon_info():
     beaconLocHAWCS = {}  # store latest beacon updates from android upon request from HAWCS server
@@ -77,10 +76,8 @@ def beaconinfo():
 
 # add record into beacon location list
 def addNewRecord(staff_id, mac, rssi, timestamp, location, level):
-    global staffLocDict
     if staff_id in staffLocDict:
-        if location == staffLocDict[staff_id][0]['location']:
-            staffLocDict[staff_id][0]['mac'] = mac
+        if mac == staffLocDict[staff_id][0]['mac']:
             staffLocDict[staff_id][0]['rssi'] = rssi
             staffLocDict[staff_id][0]['timestamp'] = timestamp
         else:
