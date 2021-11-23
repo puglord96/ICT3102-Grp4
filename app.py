@@ -57,12 +57,14 @@ def get_beacon_info():
 
 
 # retrieve beacon information from android phone (staff id, rssi and mac address)
-
 @app.route("/beaconinfo", methods=["POST"])
 @cache.cached(timeout=5, query_string=True)
-# @flask_profiler.profile()
 def beaconinfo():
-    global staffLocDict
+    # json_data = flask.request.json
+    # timestamp = int(time.time())
+    # staff_id = int(json_data["staffId"])
+    # rssiInput = int(json_data["rssiInput"])
+    # macInput = json_data["macInput"].replace(':', '')
     timestamp = int(time.time())
     staff_id = int(request.form["staffId"])
     rssiInput = int(request.form["rssiInput"])
@@ -76,9 +78,16 @@ def beaconinfo():
 def addNewRecord(staff_id, mac, rssi, timestamp, location, level):
     global staffLocDict
     if staff_id in staffLocDict:
-        staffLocDict[staff_id].insert(0,
-                                      {'mac': mac, 'rssi': rssi, 'level': level, 'location': location,
-                                       'timestamp': timestamp})
+        if location == staffLocDict[staff_id][0]['location']:
+            staffLocDict[staff_id][0]['mac'] = mac
+            staffLocDict[staff_id][0]['rssi'] = rssi
+            staffLocDict[staff_id][0]['timestamp'] = timestamp
+        else:
+            staffLocDict[staff_id][0]['mac'] = mac
+            staffLocDict[staff_id][0]['rssi'] = rssi
+            staffLocDict[staff_id][0]['level'] = level
+            staffLocDict[staff_id][0]['location'] = location
+            staffLocDict[staff_id][0]['timestamp'] = timestamp
     else:
         staffLocDict[staff_id] = [
             {'mac': mac, 'rssi': rssi, 'level': level, 'location': location, 'timestamp': timestamp}]
@@ -118,32 +127,6 @@ def initRoomListVisits():
             roomList[row['location']] = {'mac': [row['mac']], 'visit': 0, 'lastvisit': int(time.time())}
 
 
-# update room visits:
-# def updateRoomVisits(staff_id, location, timestamp):
-#     global staffLocDict
-#     global roomList
-#     # update number of staff
-#     if len(staffLocDict[staff_id]) > 1:
-#         # update number of staff in a room
-#         roomList[location]['visit'] += 1
-#         roomList[location]['lastvisit'] = timestamp
-#
-#         # previous staff location
-#         room = staffLocDict[staff_id][1]['location']
-#         # minus visit
-#         roomList[room]['visit'] -= 1
-#     else:
-#         roomList[location]['visit'] += 1
-#         roomList[location]['lastvisit'] = timestamp
-#     # print(staffLocDict)
-
-
-def clearstaffLocDictItem():
-    global staffLocDict
-    for key, value in staffLocDict.items():
-        del staffLocDict[key][1:]
-
-
 # to be removed once done
 # def simulatedAndroidData():
 #     global simulated_mac
@@ -177,9 +160,6 @@ if __name__ == "__main__" or __name__ == "app":
     # sched_0 = BackgroundScheduler(daemon=True)
     # sched_0.add_job(simulatedAndroidData, 'interval', seconds=0.1)
     # sched_0.start()
-    sched_1 = BackgroundScheduler(daemon=True)
-    sched_1.add_job(clearstaffLocDictItem, 'interval', seconds=20)
-    sched_1.start()
     ##################################################
     if __name__ == "__main__":
         app.run(host='0.0.0.0', port=5000)
