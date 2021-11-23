@@ -54,7 +54,7 @@ def get_beacon_info():
 
 # retrieve beacon information from android phone (staff id, rssi and mac address)
 @app.route("/beaconinfo", methods=["POST"])
-#@cache.cached(timeout=5, query_string=True)
+@cache.cached(timeout=5, query_string=True)
 def beaconinfo():
     # json_data = flask.request.json
     # timestamp = int(time.time())
