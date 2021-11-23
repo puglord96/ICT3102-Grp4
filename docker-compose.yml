@@ -10,7 +10,7 @@ services:
   networks:
    - my-network
   ports:
-   - 80:80
+   - 5000:80
  flask:
   restart: always
   build: ./
@@ -26,15 +26,15 @@ services:
    my-network:
     aliases:
      - flask-app
-  ports:
-   - 8080:5000
+#  ports:
+#   - 80:5000
   mem_limit: 256m
   mem_reservation: 128M
   cpus: 0.5
- redis:
-  image: redis
-  container_name: redis-container
-  ports:
-   - "6379:6379"
+# redis:
+#  image: redis
+#  container_name: redis-container
+#  ports:
+#   - "6379:6379"
 networks:
     my-network:
