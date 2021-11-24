@@ -6,6 +6,7 @@ services:
       context: ./nginx
     ports:
       - 5000:80
+      - 5001:8080
 
   flask:
     restart: always
@@ -26,6 +27,17 @@ services:
     mem_reservation: 128M
     cpus: 0.5
 
+  hacs:
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./SimulatedHACS/web
+    container_name: hacs
+    volumes:
+      - "./SimulatedHACS/web:/web"
+    mem_limit: 256m
+    mem_reservation: 128M
+    cpus: 0.5
 
   redis:
     image: redis
