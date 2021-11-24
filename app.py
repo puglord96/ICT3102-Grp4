@@ -58,15 +58,10 @@ def get_beacon_info():
 @app.route("/beaconinfo", methods=["POST"])
 @cache.cached(timeout=5, query_string=True)
 def beaconinfo():
-    json_data = flask.request.json
     timestamp = int(time.time())
-    staff_id = int(json_data["staffId"])
-    rssiInput = int(json_data["rssiInput"])
-    macInput = json_data["macInput"].replace(':', '')
-    # timestamp = int(time.time())
-    # staff_id = int(request.form["staffId"])
-    # rssiInput = int(request.form["rssiInput"])
-    # macInput = request.form["macInput"].replace(':', '')
+    staff_id = int(request.form["staffId"])
+    rssiInput = int(request.form["rssiInput"])
+    macInput = request.form["macInput"].replace(':', '')
     location, level = findLocationByMac(macInput)
     addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
     return "200 OK"
