@@ -3,6 +3,8 @@
 # 2. The system shall be able to detect the number of users at a particular location at the current time (throughput)
 # 3. The system shall be able to get alerts of the location which is unpatrolled for a certain period. (response time)
 import time
+
+import flask
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, request, render_template
 import pandas as pd
@@ -56,15 +58,15 @@ def get_beacon_info():
 @app.route("/beaconinfo", methods=["POST"])
 @cache.cached(timeout=5, query_string=True)
 def beaconinfo():
-    # json_data = flask.request.json
-    # timestamp = int(time.time())
-    # staff_id = int(json_data["staffId"])
-    # rssiInput = int(json_data["rssiInput"])
-    # macInput = json_data["macInput"].replace(':', '')
+    json_data = flask.request.json
     timestamp = int(time.time())
-    staff_id = int(request.form["staffId"])
-    rssiInput = int(request.form["rssiInput"])
-    macInput = request.form["macInput"].replace(':', '')
+    staff_id = int(json_data["staffId"])
+    rssiInput = int(json_data["rssiInput"])
+    macInput = json_data["macInput"].replace(':', '')
+    # timestamp = int(time.time())
+    # staff_id = int(request.form["staffId"])
+    # rssiInput = int(request.form["rssiInput"])
+    # macInput = request.form["macInput"].replace(':', '')
     location, level = findLocationByMac(macInput)
     addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
     return "200 OK"
