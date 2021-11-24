@@ -9,6 +9,7 @@ ADD . /ICT3102-Grp4
 WORKDIR /ICT3102-Grp4
 
 EXPOSE 5000
+EXPOSE 5001
 
 COPY ./requirements.txt ./requirements.txt
 
