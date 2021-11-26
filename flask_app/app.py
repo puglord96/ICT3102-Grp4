@@ -115,39 +115,12 @@ def clearStaffLocDictItem():
         del staffLocDict[key][1:]
 
 
-# to be removed once done
-# def simulatedAndroidData():
-#     global simulated_mac
-#     global staffLocDict
-#     timestamp = int(time.time())
-#     staff_id = random.randint(1, 10)
-#     rssiInput = random.randint(-100, 0)
-#     macInput = random.choice(simulated_mac['mac'])
-#     location, level = findLocationByMac(macInput)
-#     if rssiInput > -60:
-#         if staff_id not in staffLocDict:
-#             addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
-#         elif staffLocDict[staff_id][0]['location'] != location:
-#             addNewRecord(staff_id, macInput, rssiInput, timestamp, location, level)
-
-
 if __name__ == "__main__" or __name__ == "app":
     df_dict, df = readBeaconLocations()
     staffLocDict = {}  # store latest beacon updates from android
     roomList = {}
     initRoomListVisits()
 
-    # to be remove once android part has been updated
-    # import random
-    #
-    # simulated_mac = ["DE69F34B12FB", "ECAC7EDCDF93", "F68644A3A846", "E7F82CE7B318"]
-    # readdata = pd.read_csv("beacon_locations.txt", names=["mac", "location", "level"], sep=": ")
-    # simulated_mac = pd.DataFrame(readdata)  # convert data into pandas dataframe
-    # simulated_mac['location'] = simulated_mac['location'].str.replace('\"', '')
-    # simulated_mac['mac'] = simulated_mac['mac'].str.replace('\"', '')
-    # sched_0 = BackgroundScheduler(daemon=True)
-    # sched_0.add_job(simulatedAndroidData, 'interval', seconds=0.1)
-    # sched_0.start()
     sched_1 = BackgroundScheduler(daemon=True)
     sched_1.add_job(clearStaffLocDictItem, 'interval', seconds=20)
     sched_1.start()
